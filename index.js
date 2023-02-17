@@ -18,7 +18,7 @@ app.use(express.json());
 // extra
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-// app.use(express.static(__dirname))
+app.use('/uploads',express.static('uploads'))
 
 
 
@@ -45,6 +45,11 @@ async function run() {
             }
             const result = await postsCollection.insertOne(posts);
             res.send(result);
+        })
+        app.get('/posts',async(req,res)=>{
+            const query = {};
+            const posts = await postsCollection.find(query).toArray();
+            res.send(posts);
         })
     }
     finally {
