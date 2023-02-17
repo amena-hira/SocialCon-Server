@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const path = require('path');
@@ -18,7 +18,8 @@ app.use(express.json());
 // extra
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-app.use('/uploads',express.static('uploads'))
+app.use('/uploads', express.static('uploads'))
+
 
 
 
@@ -31,25 +32,60 @@ async function run() {
         const postsCollection = client.db('socialCon').collection('posts');
 
         app.post('/posts', upload.array("image", 12), async (req, res) => {
-            console.log(req.body, "files: ",req.files);
+            console.log(req.body, "files: ", req.files);
             const postMessage = req.body.postMessage;
             let imageUrl = [];
-            for (const element of req.files){
-                imageUrl.push(element.path) ;
+            for (const element of req.files) {
+                imageUrl.push(element.path);
             }
             const posts = {
                 postMessage: postMessage,
                 imageUrl: imageUrl,
-                like:'',
+                like: '0',
                 comment: ''
             }
             const result = await postsCollection.insertOne(posts);
             res.send(result);
         })
-        app.get('/posts',async(req,res)=>{
+        app.get('/posts', async (req, res) => {
             const query = {};
             const posts = await postsCollection.find(query).toArray();
             res.send(posts);
+        })
+        app.get('/posts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            console.log(query)
+            const post = await postsCollection.findOne(query);
+            res.send(post);
+        })
+        app.patch('/posts/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(req.body)
+            const query = { _id: new ObjectId(id) }
+            const post = await postsCollection.findOne(query);
+            let result = '';
+            if (JSON.stringify(req.body) === '{}') {
+                const likeInt = parseInt(post.like);
+                const likeNum = likeInt + 1;
+                console.log('like number: ', likeNum);
+                const updateDoc = {
+                    $set: {
+                        like: likeNum
+                    }
+                }
+                result = await postsCollection.updateOne(query, updateDoc);
+            }
+            else {
+                const updateDoc = {
+                    $set: {
+                        comment: req.body.comment
+                    }
+                }
+                result = await postsCollection.updateOne(query, updateDoc);
+            }
+            res.send(result)
+
         })
     }
     finally {
