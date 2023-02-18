@@ -30,7 +30,35 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         const postsCollection = client.db('socialCon').collection('posts');
+        const usersCollection = client.db('socialCon').collection('users');
 
+        // Users
+        app.post('/users', async(req,res)=>{
+            const users = req.body;
+            const result = await usersCollection.insertOne(users);
+            res.send(result);
+        })
+        app.get('/users/:email', async(req,res) =>{
+            const query = {email: req.params.email}
+            const user = await usersCollection.findOne(query);
+            res.send(user);
+        })
+        app.patch('/users', async(req, res) =>{
+            const query = {email: req.body.email};
+            const updateDoc = {
+                $set:{
+                    name: req.body.name,
+                    university: req.body.university,
+                    address: req.body.address
+                }
+            }
+            // console.log(updateDoc);
+            const result = await usersCollection.updateOne(query, updateDoc);
+            res.send(result);
+        })
+
+
+        // POSTS
         app.post('/posts', upload.array("image", 12), async (req, res) => {
             console.log(req.body, "files: ", req.files);
             const postMessage = req.body.postMessage;
@@ -66,7 +94,7 @@ async function run() {
             const post = await postsCollection.findOne(query);
             res.send(post);
         })
-        
+
         app.patch('/posts/:id', async (req, res) => {
             const id = req.params.id;
             console.log(req.body)
