@@ -70,7 +70,7 @@ async function run() {
                 postMessage: postMessage,
                 imageUrl: imageUrl,
                 like: 0,
-                comment: ''
+                comment: []
             }
             const result = await postsCollection.insertOne(posts);
             res.send(result);
@@ -113,12 +113,7 @@ async function run() {
                 result = await postsCollection.updateOne(query, updateDoc);
             }
             else {
-                const updateDoc = {
-                    $set: {
-                        comment: req.body.comment
-                    }
-                }
-                result = await postsCollection.updateOne(query, updateDoc);
+                result = await postsCollection.updateOne(query, {$push: {comment: req.body.comment}});
             }
             res.send(result)
 
