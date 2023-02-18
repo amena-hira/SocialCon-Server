@@ -1,13 +1,14 @@
 const express = require('express');
 const cors = require('cors');
-const multer = require('multer');
+// const multer = require('multer');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const path = require('path');
 
-const bodyParser = require('body-parser')
-const upload = multer({ dest: 'uploads/' })
+// extra Multiple Images ----------
+// const bodyParser = require('body-parser')
+// const upload = multer({ dest: 'uploads/' })
 
 const app = express();
 
@@ -15,10 +16,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// extra
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
-app.use('/uploads', express.static('uploads'))
+// extra Multiple Images ----------
+// app.use(bodyParser.urlencoded({ extended: false }))
+// app.use(bodyParser.json())
+// app.use('/uploads', express.static('uploads'))
 
 
 
@@ -57,24 +58,35 @@ async function run() {
             res.send(result);
         })
 
-
+        // post image bb
+        app.post('/posts/image',async(req,res)=>{
+            const posts = req.body;
+            const result = await postsCollection.insertOne(posts);
+            res.send(result)
+        })
         // POSTS
-        app.post('/posts', upload.array("image", 12), async (req, res) => {
-            console.log(req.body, "files: ", req.files);
-            const postMessage = req.body.postMessage;
-            let imageUrl = [];
-            for (const element of req.files) {
-                imageUrl.push(element.path);
-            }
-            const posts = {
-                postMessage: postMessage,
-                imageUrl: imageUrl,
-                like: 0,
-                comment: []
-            }
+        app.post('/posts', async (req, res) => {
+            const posts = req.body;
             const result = await postsCollection.insertOne(posts);
             res.send(result);
         })
+        // Multiple Images----------------
+        // app.post('/posts', upload.array("image", 12), async (req, res) => {
+        //     console.log(req.body, "files: ", req.files);
+        //     const postMessage = req.body.postMessage;
+        //     let imageUrl = [];
+        //     for (const element of req.files) {
+        //         imageUrl.push(element.path);
+        //     }
+        //     const posts = {
+        //         postMessage: postMessage,
+        //         imageUrl: imageUrl,
+        //         like: 0,
+        //         comment: []
+        //     }
+        //     const result = await postsCollection.insertOne(posts);
+        //     res.send(result);
+        // })
         app.get('/posts', async (req, res) => {
             const query = {};
             const posts = await postsCollection.find(query).toArray();
