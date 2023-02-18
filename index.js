@@ -41,7 +41,7 @@ async function run() {
             const posts = {
                 postMessage: postMessage,
                 imageUrl: imageUrl,
-                like: '0',
+                like: 0,
                 comment: ''
             }
             const result = await postsCollection.insertOne(posts);
@@ -52,6 +52,13 @@ async function run() {
             const posts = await postsCollection.find(query).toArray();
             res.send(posts);
         })
+        // limit and sort
+        app.get('/popular/posts', async (req, res) => {
+            const query = {};
+            const posts = await postsCollection.find().sort({like: -1}).limit(3).toArray();
+            res.send(posts);
+        })
+
         app.get('/posts/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -59,6 +66,7 @@ async function run() {
             const post = await postsCollection.findOne(query);
             res.send(post);
         })
+        
         app.patch('/posts/:id', async (req, res) => {
             const id = req.params.id;
             console.log(req.body)
